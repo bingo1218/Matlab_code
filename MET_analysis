@@ -1,0 +1,130 @@
+%MET_analysis_ZHB
+%SHJTU_202012
+%function analysis
+clear;clc;
+%load-in data
+filename = dir('shengze_HC_match_oh_0312.txt');
+origdata = xlsread(filename.name);
+origdata2 = origdata;
+origdata(find(isnan(origdata)==1)) = 0;
+trial=size(origdata2,1);
+missingdata = ismissing(origdata2);
+%额外的NAN = 3;
+
+acc = [2,6,10,14];%1.Cog.empathy
+resp = [4,8,12,16];%for resp score
+time = [5,9,13,17];%for response time
+data = origdata;
+
+for i = 1:trial
+    acc_t= sum(data(i,acc));
+    resp_t = sum(data(i,resp));
+    time_t = sum(data(i,time));
+    data(i,18) = acc_t;
+    data(i,19) = resp_t;
+    data(i,20) = time_t;
+end
+%整理所有空值
+for i = 1:trial
+    miss_Data = sum(missingdata(i,resp));
+    m_data(i,1) = miss_Data-3;%放每排reps空值检测
+end
+
+%整理数据
+data2 = [];
+x = 1;
+%整理判断第一个问题的ACC
+for n = 1:5:trial
+    data2(x,1) = data(n,1);
+    data2(x,2) = data(n,18);
+    data2(x,6) = data(n,20);%第一题反应时计算
+    m_data2(x,1) = data(n,1);%记录问题1空值
+    m_data2(x,2) = m_data(n,1);%记录问题1空值
+    x = x+1;
+end
+
+%第二个问题的回答整理
+x = 1;
+for n = 3:5:trial
+    data2(x,3) = data(n,19);
+    data2(x,7) = data(n,20);%第二题反应时计算
+    m_data2(x,3) = m_data(n,1);%记录问题2空值
+    x = x+1;
+end
+
+%第三个问题回答的整理  
+x = 1;
+for n = 4:5:trial
+    data2(x,4) = data(n,19);
+    data2(x,8) = data(n,20);%第三题反应时计算
+    m_data2(x,4) = m_data(n,1);%记录问题3的空值
+    x = x+1;
+end
+
+%第四个问题回答的整理
+x = 1;
+for n = 5:5:trial
+    data2(x,5) = data(n,19);
+    data2(x,9) = data(n,20);%第四题反应时计算
+    m_data2(x,5) = m_data(n,1);%记录问题4的空值
+    x = x+1;
+end
+ 
+%计算正确第一个问题正确的百分比
+data3 = [];
+y=1;
+for m = 1:40:size(data2,1)
+    singlesubj=[m:m+39];
+    missing_n = sum(m_data2(singlesubj,2));
+    data3(y,1) = data2(m,1);
+    data3(y,2) = sum(data2(singlesubj,2));
+    data3(y,3) = data3(y,2)/(40-missing_n);
+    data3(y,4) = missing_n;
+    data3(y,5) = sum(data2(singlesubj,3))/(40-sum(m_data2(singlesubj,3)));
+    data3(y,6) = sum(m_data2(singlesubj,3));
+    data3(y,7) = sum(data2(singlesubj,4))/(40-sum(m_data2(singlesubj,4)));
+    data3(y,8) = sum(m_data2(singlesubj,4));
+    data3(y,9) = sum(data2(singlesubj,5))/(40-sum(m_data2(singlesubj,5)));
+    data3(y,10) = sum(m_data2(singlesubj,5));
+    data3(y,11) = sum(data2(singlesubj,6))/(40-sum(m_data2(singlesubj,2)));
+    y = y+1;
+end
+%分情绪看
+data4 = [];
+pos = [2,4,5,8,9,11,13,16,17,18,20,24,25,27,29,33,34,35,36,39];%负性情绪判断
+neg = [1,3,6,7,10,12,14,15,19,21,22,23,26,28,30,31,32,37,38,40];%正性情绪判断
+z=1;
+for m = 1:40:size(data2,1)
+    pos_missing_n = sum(m_data2(pos,2));
+    neg_missing_n = sum(m_data2(neg,2));
+    data4(z,1) = data2(m,1);
+    data4(z,2) = sum(data2(pos,2));%pos数量
+    data4(z,3) = sum(data2(neg,2));%neg数量
+    data4(z,4) = data4(z,2)/(20-pos_missing_n);
+    data4(z,5) = data4(z,3)/(20-neg_missing_n);
+    data4(z,6) = sum(data2(pos,3))/(20-sum(m_data2(pos,3)));
+    data4(z,7) = sum(data2(neg,3))/(20-sum(m_data2(neg,3)));
+    data4(z,8) = sum(data2(pos,4))/(20-sum(m_data2(pos,4)));
+    data4(z,9) = sum(data2(neg,4))/(20-sum(m_data2(neg,4)));
+    data4(z,10) = sum(data2(pos,5))/(20-sum(m_data2(pos,5)));
+    data4(z,11) = sum(data2(neg,5))/(20-sum(m_data2(neg,5)));
+    data4(z,12) = sum(data2(pos,6))/(20-sum(m_data2(pos,2)));
+    data4(z,13) = sum(data2(neg,6))/(20-sum(m_data2(neg,2)));  
+    pos = pos + 40; 
+    neg = neg +40;
+    z = z+1;
+end
+
+% Output results
+save('data3.mat');
+save('data4.mat');
+dataName = 'MET_resutls.xlsx';
+title = {'Subject','Correct_number','ACC','missing_q1','emo_jugde','missing_q2','emo_emp','missing_q3','report_emp','missing_q4','rt'};
+xlswrite(dataName,title);
+xlswrite(dataName, data3,1,'A2');
+dataName2 = 'MET_emo_resutls.xlsx';
+title1 = {'Subject','pos_n','neg_n','pos_ac','neg_ac','pos_q2','neg_q2','pos_q3','neg_q3','pos_q4','neg_q4','pos1_rt','neg1_rt'};
+xlswrite(dataName2,title1);
+xlswrite(dataName2, data4,1,'A2');
+
+
